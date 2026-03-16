@@ -1,0 +1,23 @@
+#include "laplacian_serial.h"
+#include <algorithm>
+
+ImageBuffer SerialLaplacianFilter::apply(const ImageBuffer& in, int) {
+    const int W = in.width, H = in.height, C = in.channels;
+    ImageBuffer out = in.clone();
+
+    static const int K[3][3] = {{0,-1,0},{-1,4,-1},{0,-1,0}};
+
+    for (int r = 1; r < H - 1; ++r) {
+        for (int c = 1; c < W - 1; ++c) {
+            for (int ch = 0; ch < C; ++ch) {
+                int acc = 0;
+                for (int kr = -1; kr <= 1; ++kr)
+                    for (int kc = -1; kc <= 1; ++kc)
+                        acc += K[kr+1][kc+1] * in.at(r+kr, c+kc, ch);
+                out.at(r, c, ch) = static_cast<uint8_t>(
+                    std::clamp(std::abs(acc), 0, 255));
+            }
+        }
+    }
+    return out;
+}
